@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.20.6](https://github.com/cube-js/cube.js/compare/v0.20.5...v0.20.6) (2020-09-10)
+
+**Note:** Version bump only for package @cubejs-client/vue
+
+
+
+
+
+# [0.20.0](https://github.com/cube-js/cube.js/compare/v0.19.61...v0.20.0) (2020-08-26)
+
+**Note:** Version bump only for package @cubejs-client/vue
+
+
+
+
+
 ## [0.19.51](https://github.com/cube-js/cube.js/compare/v0.19.50...v0.19.51) (2020-07-17)
 
 **Note:** Version bump only for package @cubejs-client/vue

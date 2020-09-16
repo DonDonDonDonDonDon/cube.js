@@ -86,12 +86,24 @@ declare module '@cubejs-client/core' {
     measures: Record<string, Annotation>;
     timeDimensions: Record<string, Annotation>;
   };
-
-  export type LoadResponse<T> = {
+  
+  type PivotQuery = Query & {
+    queryType: QueryType;
+  }
+  
+  type QueryType = 'regularQuery' | 'compareDateRangeQuery' | 'blendingQuery';
+  
+  type LoadResponseResult<T> = {
     annotation: QueryAnnotations;
     lastRefreshTime: string;
     query: Query;
     data: T[];
+  }
+  
+  export type LoadResponse<T> = {
+    queryType: QueryType;
+    results: LoadResponseResult<T>[];
+    pivotQuery: PivotQuery;
   };
 
   /**
@@ -217,7 +229,7 @@ declare module '@cubejs-client/core' {
      * @hidden
      */
     static measureFromAxis(axisValues: string[]): string;
-    static getNormalizedPivotConfig(query: Query, pivotConfig?: Partial<PivotConfig>): PivotConfig;
+    static getNormalizedPivotConfig(query: PivotQuery, pivotConfig?: Partial<PivotConfig>): PivotConfig;
     /**
      * ```js
      * import { ResultSet } from '@cubejs-client/core';
@@ -234,31 +246,19 @@ declare module '@cubejs-client/core' {
     static deserialize<TData = any>(data: Object, options?: Object): ResultSet<TData>;
 
     /**
-     * Creates a new instance of ResultSet based on [LoadResponse](#load-response) data.
-     *
-     * ```js
-     * import cubejs, { ResultSet } from '@cubejs-client/core';
-     *
-     * const cubejsApi = cubejs('CUBEJS_TOKEN');
-     *
-     * const resultSet = await cubejsApi.load({
-     *  measures: ['Stories.count'],
-     *  timeDimensions: [{
-     *    dimension: 'Stories.time',
-     *    dateRange: ['2015-01-01', '2015-12-31'],
-     *    granularity: 'month'
-     *   }]
-     * });
-     *
-     * const copy = new ResultSet(resultSet.loadResponse);
-     * ```
-     */
-    constructor(loadResponse: LoadResponse<T>, options?: Object);
-
-    /**
      * Can be used to stash the `ResultSet` in a storage and restored later with [deserialize](#result-set-deserialize)
      */
     serialize(): Object;
+    
+    /**
+     * Can be used when you need access to the methods that can't be used with some query types (eg `compareDateRangeQuery` or `blendingQuery`)
+     * ```js
+     * resultSet.decompose().forEach((currentResultSet) => {
+     *   console.log(currentResultSet.rawData());
+     * });
+     * ```
+     */
+    decompose(): Object;
 
     /**
      * @hidden
@@ -563,14 +563,37 @@ declare module '@cubejs-client/core' {
     annotation(): QueryAnnotations;
   }
 
-  export type Filter = {
+  export type Filter = BinaryFilter | UnaryFilter;
+  type BinaryFilter = {
     dimension?: string;
     member?: string;
-    operator: string;
-    values?: string[];
+    operator: BinaryOperator;
+    values: string[];
   };
+  type UnaryFilter = {
+    dimension?: string;
+    member?: string;
+    operator: UnaryOperator;
+    values?: never;
+  };
+  type UnaryOperator = 'set' | 'notSet';
+  type BinaryOperator =
+    | 'equals'
+    | 'notEquals'
+    | 'contains'
+    | 'notContains'
+    | 'gt'
+    | 'gte'
+    | 'lt'
+    | 'lte'
+    | 'inDateRange'
+    | 'notInDateRange'
+    | 'beforeDate'
+    | 'afterDate';
 
-  type TimeDimensionGranularity = 'hour' | 'day' | 'week' | 'month' | 'year';
+
+
+  export type TimeDimensionGranularity = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';
 
   export type TimeDimension = {
     dimension: string;
@@ -651,6 +674,21 @@ declare module '@cubejs-client/core' {
     suggestFilterValues: boolean;
   };
 
+  type TCubeSegment = Pick<TCubeMember, "name" | 'shortTitle' | "title">
+
+  type TCubeMemberByType<T> =
+    T extends "measures" ? TCubeMeasure :
+    T extends "dimensions" ? TCubeDimension :
+    T extends "segments" ? TCubeSegment :
+    never
+  
+  type TDryRunResponse = {
+    queryType: QueryType;
+    normalizedQueries: Query[];
+    pivotQuery: PivotQuery;
+    queryOrder: Array<{ [k: string]: QueryOrder }>;
+  }
+
   /**
    * Contains information about available cubes and it's members.
    * @order 4
@@ -679,7 +717,7 @@ declare module '@cubejs-client/core' {
      * @param memberName - Fully qualified member name in a form `Cube.memberName`
      * @return An object containing meta information about member
      */
-    resolveMember(memberName: string, memberType: MemberType): Object;
+    resolveMember<T extends MemberType>(memberName: string, memberType: T): { title: string, error: string } | TCubeMemberByType<T>;
     defaultTimeDimensionNameFor(memberName: string): string;
     filterOperatorsForMember(memberName: string, memberType: MemberType): any;
   }
@@ -690,7 +728,7 @@ declare module '@cubejs-client/core' {
    * @order 2
    */
   export class CubejsApi {
-    load(query: Query, options?: LoadMethodOptions): Promise<ResultSet>;
+    load(query: Query | Query[], options?: LoadMethodOptions): Promise<ResultSet>;
     /**
      * Fetch data for the passed `query`.
      *
@@ -715,20 +753,26 @@ declare module '@cubejs-client/core' {
      * ```
      * @param query - [Query object](query-format)
      */
-    load(query: Query, options?: LoadMethodOptions, callback?: LoadMethodCallback<ResultSet>): void;
+    load(query: Query | Query[], options?: LoadMethodOptions, callback?: LoadMethodCallback<ResultSet>): void;
 
-    sql(query: Query, options?: LoadMethodOptions): Promise<SqlQuery>;
+    sql(query: Query | Query[], options?: LoadMethodOptions): Promise<SqlQuery>;
     /**
      * Get generated SQL string for the given `query`.
      * @param query - [Query object](query-format)
      */
-    sql(query: Query, options?: LoadMethodOptions, callback?: LoadMethodCallback<SqlQuery>): void;
+    sql(query: Query | Query[], options?: LoadMethodOptions, callback?: LoadMethodCallback<SqlQuery>): void;
 
     meta(options?: LoadMethodOptions): Promise<Meta>;
     /**
      * Get meta description of cubes available for querying.
      */
     meta(options?: LoadMethodOptions, callback?: LoadMethodCallback<Meta>): void;
+    
+    dryRun(query: Query | Query[], options?: LoadMethodOptions): Promise<TDryRunResponse>;
+    /**
+     * Get query related meta without query execution
+     */
+    dryRun(query: Query | Query[], options: LoadMethodOptions, callback?: LoadMethodCallback<TDryRunResponse>): void;
   }
 
   /**

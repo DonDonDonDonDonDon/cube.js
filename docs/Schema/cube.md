@@ -255,7 +255,24 @@ cube(`OrderFacts`, {
 });
 ```
 
-Available interval granularities are: `second`, `minute`, `hour`, `day` and `week`.
+
+`every` - can be set as an interval with granularities `second`, `minute`, `hour`, `day`, and `week` or accept CRON string with some limitations.
+If you set `every` as CRON string, you can use the `timezone` property.
+
+For example:
+
+```javascript
+cube(`OrderFacts`, {
+  sql: `SELECT * FROM orders`,
+  refreshKey: {
+    every: '30 5 * * 5',
+    timezone: 'America/Los_Angeles'
+  }
+});
+```
+
+`every` can accept only equal time intervals - so  "Day of month" and "month" intervals in CRON expressions are not supported.
+
 Such `refreshKey` is just a syntactic sugar over `refreshKey` SQL. 
 It's guaranteed that `refreshKey` change it's value at least once during `every` interval.
 It will be converted to appropriate SQL select which value will change over time based on interval value.
@@ -382,6 +399,8 @@ cube(`Events`, {
 
 `USER_CONTEXT` is a user security object that is passed by the Cube.js Client.
 
+Please see [Security Context section](security#security-context) on how to set `USER_CONTEXT` value.
+
 User context is suitable for the row level security implementation.
 For example, if you have an `orders` table that contains an `email` field you can restrict all queries to render results that belong only to the current user as follows:
 
@@ -436,7 +455,11 @@ cube(`Orders`, {
 ### SQL Utils
 #### convertTz
 
-In case you need to convert your timestamp to user request timezone in cube or member SQL you can use `SQL_UTILS.convertTz()` method. Note that Cube.js will automatically convert timezones for `timeDimensions` fields in [queries](Query-Format#query-properties). *Dimensions that use `SQL_UTILS.convertTz()` should not be used as `timeDimensions` in queries. Doing so will apply the conversion multiple times and yield wrong results.* In case the same database field needs to be queried in `dimensions` and `timeDimensions`, create dedicated dimensions in the cube definition for the respective use:
+In case you need to convert your timestamp to user request timezone in cube or member SQL you can use `SQL_UTILS.convertTz()` method. Note that Cube.js will automatically convert timezones for `timeDimensions` fields in [queries](Query-Format#query-properties). 
+
+> **NOTE:** Dimensions that use `SQL_UTILS.convertTz()` should not be used as `timeDimensions` in queries. Doing so will apply the conversion multiple times and yield wrong results. 
+
+In case the same database field needs to be queried in `dimensions` and `timeDimensions`, create dedicated dimensions in the cube definition for the respective use:
 
 ```javascript
 cube(`visitors`, {

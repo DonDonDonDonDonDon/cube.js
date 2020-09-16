@@ -282,7 +282,9 @@ In order to make external pre-aggregations work you should set
 
 Note that by default, Cube.js materializes the pre-aggregration query results as new tables in the source database. For external pre-aggregations, these source tables are temporary - once downloaded and uploaded to the external database, they are cleaned-up.
 
-However, it may not be possible to stage pre-aggregation query results in materialized tables in the source database like this - for example, if the driver doesn't support it, or if your source database is read-only. To fallback to a strategy where the pre-aggreation query results are downloaded without first being materialized, set the `readOnly` param of [driverFactory](@cubejs-backend-server-core#driver-factory) in your configuration:
+## Read Only Data Source Pre-Aggregations
+
+In some cases it may not be possible to stage pre-aggregation query results in materialized tables in the source database like this - for example, if the driver doesn't support it, or if your source database is read-only. To fallback to a strategy where the pre-aggreation query results are downloaded without first being materialized, set the `readOnly` param of [driverFactory](@cubejs-backend-server-core#driver-factory) in your configuration:
 
 ```javascript
 const CubejsServer = require('@cubejs-backend/server');
@@ -378,6 +380,42 @@ cube(`Orders`, {
 It triggers refresh for partitions where end date lies within `updateWindow` from current time.
 In provided example it'll refresh today's and last 7 days of partitions.
 Partitions before `7 day` interval won't be refreshed once they built until rollup SQL is changed.
+
+### Original SQL with incremental refreshKey
+
+Original SQL pre-aggregation can be used with time partitioning and incremental `refreshKey`.
+
+In this case, it can be used as follows:
+```javascript
+cube(`Orders`, {
+  sql: `select * from visitors WHERE ${FILTER_PARAMS.visitors.created_at.filter('created_at')}`,
+
+  preAggregations: {
+    main: {
+      type: `originalSql`,
+      timeDimensionReference: created_at,
+      partitionGranularity: `month`,
+      refreshKey: {
+        every: `1 day`,
+        incremental: true,
+        updateWindow: `7 day`
+      }
+    }
+  },
+
+  dimensions: {
+    id: {
+      type: 'number',
+      sql: 'id',
+      primaryKey: true
+    }, 
+    created_at: {
+      type: 'time',
+      sql: 'created_at'
+    },
+  }
+});
+```
 
 ## useOriginalSqlPreAggregations
 
@@ -527,7 +565,7 @@ cube(`Orders`, {
 ## Pre-aggregations Garbage Collection
 
 When pre-aggregations are refreshed Cube.js will create new pre-aggregation table each time it's version change.
-It allows to seamlessly hot swap tables for any database and even for those without DDL transactions support.
+It allows to seamlessly hot swap tables transparently for users for any database even for those without DDL transactions support.
 It leads to orphaned tables which need to be collected over time though.
 By default Cube.js will store all content versions for 10 minutes and all structure versions for 7 days. 
 Then it'll retain only the most recent ones and orphaned tables are dropped from database.

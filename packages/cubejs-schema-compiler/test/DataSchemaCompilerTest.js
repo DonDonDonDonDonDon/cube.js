@@ -1,15 +1,17 @@
+/* globals it, describe, after */
 /* eslint-disable quote-props */
 const CompileError = require('../compiler/CompileError');
 const PostgresQuery = require('../adapter/PostgresQuery');
 const PrepareCompiler = require('./PrepareCompiler');
 const MainPrepareCompiler = require('../compiler/PrepareCompiler');
+// eslint-disable-next-line import/no-extraneous-dependencies
 require('should');
 
-const prepareCompiler = PrepareCompiler.prepareCompiler;
+const { prepareCompiler } = PrepareCompiler;
 const dbRunner = require('./DbRunner');
 
 describe('DataSchemaCompiler', function test() {
-  this.timeout(20000);
+  this.timeout(200000);
 
   after(async () => {
     await dbRunner.tearDown();
@@ -101,6 +103,117 @@ describe('DataSchemaCompiler', function test() {
     });
   });
 
+  describe('Test duplicate properties', () => {
+    const invalidSchema = `
+      cube('visitors', {
+        sql: 'select * from visitors',
+        measures: {
+          count: {
+            type: 'count',
+            sql: 'id'
+          },
+          count: {
+            type: 'count',
+            sql: 'id'
+          }
+        },
+        dimensions: {
+          date: {
+            type: 'string',
+            sql: 'date'
+          }
+        }
+      })
+    `;
+
+    const validSchema = `
+      cube('visitors', {
+        sql: 'select * from visitors',
+        measures: {
+          count: {
+            type: 'count',
+            sql: 'id'
+          }
+        },
+        dimensions: {
+          date: {
+            type: 'string',
+            sql: 'date'
+          }
+        }
+      })
+    `;
+
+    it('Should compile without error, allowJsDuplicatePropsInSchema = false, valid schema', () => {
+      const { compiler } = prepareCompiler(validSchema, { allowJsDuplicatePropsInSchema: false });
+      return compiler.compile().then(() => {
+        compiler.throwIfAnyErrors();
+      });
+    });
+
+    it('Should throw error, allowJsDuplicatePropsInSchema = false, invalid schema', () => {
+      const { compiler } = prepareCompiler(invalidSchema, { allowJsDuplicatePropsInSchema: false });
+      return compiler.compile().then(() => {
+        compiler.throwIfAnyErrors();
+        throw new Error();
+      }).catch((error) => {
+        error.should.be.instanceof(CompileError);
+        error.message.should.be.match(/Duplicate property parsing count/);
+      });
+    });
+
+    it('Should compile without error, allowJsDuplicatePropsInSchema = true, invalid schema', () => {
+      const { compiler } = prepareCompiler(invalidSchema, { allowJsDuplicatePropsInSchema: true });
+      return compiler.compile().then(() => {
+        compiler.throwIfAnyErrors();
+      });
+    });
+
+    describe('Test perfomance', () => {
+      const schema = `
+        cube('visitors', {
+          sql: 'select * from visitors',
+          measures: {
+            count: {
+              type: 'count',
+              sql: 'id'
+            },
+            duration: {
+              type: 'avg',
+              sql: 'duration'
+            },
+          },
+          dimensions: {
+            date: {
+              type: 'string',
+              sql: 'date'
+            },
+            browser: {
+              type: 'string',
+              sql: 'browser'
+            }
+          }
+        })
+      `;
+
+      it('Should compile 200 schemas in less than 2500ms * 10', async () => {
+        const repeats = 200;
+
+        const compilerWith = prepareCompiler(schema, { allowJsDuplicatePropsInSchema: false });
+        const start = new Date().getTime();
+        for (let i = 0; i < repeats; i++) {
+          delete compilerWith.compiler.compilePromise; // Reset compile result
+          await compilerWith.compiler.compile();
+        }
+        const end = new Date().getTime();
+        const time = end - start;
+        
+        time.should.be.below(2500 * 10);
+      });
+    });
+  });
+  
+
   it('calculated metrics', () => {
     const { compiler, transformer, cubeEvaluator, joinGraph } = prepareCompiler(`
     cube('visitors', {
@@ -162,10 +275,10 @@ describe('DataSchemaCompiler', function test() {
       return dbRunner.testQuery(query.buildSqlAndParams()).then(res => {
         res.should.be.deepEqual(
           [
-            { "visitors__created_at_day": "2017-01-02T00:00:00.000Z", "visitors__visitor_count": "1" },
-            { "visitors__created_at_day": "2017-01-04T00:00:00.000Z", "visitors__visitor_count": "1" },
-            { "visitors__created_at_day": "2017-01-05T00:00:00.000Z", "visitors__visitor_count": "1" },
-            { "visitors__created_at_day": "2017-01-06T00:00:00.000Z", "visitors__visitor_count": "2" }
+            { 'visitors__created_at_day': '2017-01-02T00:00:00.000Z', 'visitors__visitor_count': '1' },
+            { 'visitors__created_at_day': '2017-01-04T00:00:00.000Z', 'visitors__visitor_count': '1' },
+            { 'visitors__created_at_day': '2017-01-05T00:00:00.000Z', 'visitors__visitor_count': '1' },
+            { 'visitors__created_at_day': '2017-01-06T00:00:00.000Z', 'visitors__visitor_count': '2' }
           ]
         );
       });
@@ -224,8 +337,8 @@ describe('DataSchemaCompiler', function test() {
       return dbRunner.testQuery(query.buildSqlAndParams()).then(res => {
         res.should.be.deepEqual(
           [
-            { "visitors__status": "Approved", "visitors__visitor_count": "2" },
-            { "visitors__status": "Canceled", "visitors__visitor_count": "4" }
+            { 'visitors__status': 'Approved', 'visitors__visitor_count': '2' },
+            { 'visitors__status': 'Canceled', 'visitors__visitor_count': '4' }
           ]
         );
       });
@@ -258,21 +371,21 @@ describe('DataSchemaCompiler', function test() {
     })
     `);
     const responses = [
-      [{ "visitors__created_at": '2017-01-03T00:00:00.000Z' }],
+      [{ 'visitors__created_at': '2017-01-03T00:00:00.000Z' }],
       [
-        { "visitors__created_at": '2016-09-07T00:00:00.000Z' },
-        { "visitors__created_at": '2017-01-05T00:00:00.000Z' },
-        { "visitors__created_at": '2017-01-06T00:00:00.000Z' },
-        { "visitors__created_at": '2017-01-07T00:00:00.000Z' }
+        { 'visitors__created_at': '2016-09-07T00:00:00.000Z' },
+        { 'visitors__created_at': '2017-01-05T00:00:00.000Z' },
+        { 'visitors__created_at': '2017-01-06T00:00:00.000Z' },
+        { 'visitors__created_at': '2017-01-07T00:00:00.000Z' }
       ],
-      [{ "visitors__created_at": '2017-01-07T00:00:00.000Z' }],
+      [{ 'visitors__created_at': '2017-01-07T00:00:00.000Z' }],
       [
-        { "visitors__created_at": '2016-09-07T00:00:00.000Z' },
-        { "visitors__created_at": '2017-01-03T00:00:00.000Z' },
-        { "visitors__created_at": '2017-01-05T00:00:00.000Z' },
-        { "visitors__created_at": '2017-01-06T00:00:00.000Z' }
+        { 'visitors__created_at': '2016-09-07T00:00:00.000Z' },
+        { 'visitors__created_at': '2017-01-03T00:00:00.000Z' },
+        { 'visitors__created_at': '2017-01-05T00:00:00.000Z' },
+        { 'visitors__created_at': '2017-01-06T00:00:00.000Z' }
       ],
-      [{ "visitors__created_at": '2017-01-07T00:00:00.000Z' }]
+      [{ 'visitors__created_at': '2017-01-07T00:00:00.000Z' }]
     ];
     const result = compiler.compile().then(() => {
       const queries = ['in_date_range', 'not_in_date_range', 'on_the_date', 'before_date', 'after_date'].map((operator, index) => {
@@ -309,7 +422,7 @@ describe('DataSchemaCompiler', function test() {
     const { compiler, cubeEvaluator, joinGraph } = MainPrepareCompiler.prepareCompiler({
       dataSchemaFiles: () => Promise.resolve([
         {
-          fileName: "main.js",
+          fileName: 'main.js',
           content: `
           const fooTable = require('./some.js').foo;
           cube('Main', {
@@ -323,7 +436,7 @@ describe('DataSchemaCompiler', function test() {
           })
           `
         }, {
-          fileName: "some.js",
+          fileName: 'some.js',
           content: `
           export const foo = 'bar';
           `
@@ -372,7 +485,7 @@ describe('DataSchemaCompiler', function test() {
     return compiler.compile().then(() => {
       contextEvaluator.contextList.should.be.deepEqual(
         ['Marketing']
-      )
+      );
     });
   });
 
@@ -458,7 +571,7 @@ describe('DataSchemaCompiler', function test() {
             layout: { w: 24, h: 4, x: 0, y: 0 }
           }]
         }]
-      )
+      );
     });
   });
 });

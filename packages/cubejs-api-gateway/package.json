@@ -1,8 +1,8 @@
 {
   "name": "@cubejs-backend/api-gateway",
   "description": "Cube.js API Gateway",
-  "author": "Statsbot, Inc.",
-  "version": "0.19.54",
+  "author": "Cube Dev, Inc.",
+  "version": "0.20.7",
   "repository": {
     "type": "git",
     "url": "https://github.com/cube-js/cube.js.git",
@@ -12,13 +12,16 @@
     "node": ">=8.11.1"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint *.js"
   },
   "main": "index.js",
   "types": "index.d.ts",
   "dependencies": {
     "@hapi/joi": "^15.1.1",
+    "body-parser": "^1.19.0",
     "chrono-node": "1.4.4",
+    "cron-parser": "^2.16.3",
     "jsonwebtoken": "^8.3.0",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.27",

@@ -8,6 +8,8 @@ const timeInterval =
     Joi.any().valid('unbounded')
   ]);
 const everyInterval = Joi.string().regex(/^(\d+) (second|minute|hour|day|week)s?$/, 'refresh time interval');
+const everyCronInterval = Joi.string();
+const everyCronTimeZone = Joi.string();
 
 const BaseDimensionWithoutSubQuery = {
   aliases: Joi.array().items(Joi.string()),
@@ -63,20 +65,20 @@ const BaseMeasure = {
   meta: Joi.any()
 };
 
-const BasePreAggregation = {
+const BasePreAggregationWithoutPartitionGranularity = {
   refreshKey: Joi.alternatives().try(
     Joi.object().keys({
       sql: Joi.func().required()
     }),
     Joi.object().keys({
-      every: everyInterval,
+      every: Joi.alternatives().try(everyInterval, everyCronInterval),
+      timezone: everyCronTimeZone,
       incremental: Joi.boolean(),
       updateWindow: timeInterval
     })
   ),
   useOriginalSqlPreAggregations: Joi.boolean(),
   external: Joi.boolean(),
-  partitionGranularity: Joi.any().valid('hour', 'day', 'week', 'month', 'year'),
   scheduledRefresh: Joi.boolean(),
   refreshRangeStart: {
     sql: Joi.func().required()
@@ -94,6 +96,11 @@ const BasePreAggregation = {
   )),
 };
 
+const BasePreAggregation = {
+  ...BasePreAggregationWithoutPartitionGranularity,
+  partitionGranularity: Joi.any().valid('hour', 'day', 'week', 'month', 'year'),
+};
+
 const cubeSchema = Joi.object().keys({
   name: identifier,
   sql: Joi.func().required(),
@@ -105,7 +112,8 @@ const cubeSchema = Joi.object().keys({
       immutable: Joi.boolean().required()
     }),
     Joi.object().keys({
-      every: everyInterval
+      every: Joi.alternatives().try(everyInterval, everyCronInterval),
+      timezone: everyCronTimeZone,
     })
   ),
   fileName: Joi.string().required(),
@@ -190,7 +198,11 @@ const cubeSchema = Joi.object().keys({
     })),
     Joi.object().keys(Object.assign({}, BasePreAggregation, {
       type: Joi.any().valid('originalSql').required(),
-      timeDimensionReference: Joi.func()
+      timeDimensionReference: Joi.func().required(),
+      partitionGranularity: BasePreAggregation.partitionGranularity.required(),
+    })),
+    Joi.object().keys(Object.assign({}, BasePreAggregationWithoutPartitionGranularity, {
+      type: Joi.any().valid('originalSql').required(),
     })),
     Joi.object().keys(Object.assign({}, BasePreAggregation, {
       type: Joi.any().valid('rollup').required(),

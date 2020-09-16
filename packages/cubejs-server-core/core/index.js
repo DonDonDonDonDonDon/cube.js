@@ -14,25 +14,8 @@ const DevServer = require('./DevServer');
 const track = require('./track');
 const agentCollect = require('./agentCollect');
 const { version } = require('../package.json');
-
-const DriverDependencies = {
-  postgres: '@cubejs-backend/postgres-driver',
-  mysql: '@cubejs-backend/mysql-driver',
-  mssql: '@cubejs-backend/mssql-driver',
-  athena: '@cubejs-backend/athena-driver',
-  jdbc: '@cubejs-backend/jdbc-driver',
-  mongobi: '@cubejs-backend/mongobi-driver',
-  bigquery: '@cubejs-backend/bigquery-driver',
-  redshift: '@cubejs-backend/postgres-driver',
-  clickhouse: '@cubejs-backend/clickhouse-driver',
-  hive: '@cubejs-backend/hive-driver',
-  snowflake: '@cubejs-backend/snowflake-driver',
-  prestodb: '@cubejs-backend/prestodb-driver',
-  oracle: '@cubejs-backend/oracle-driver',
-  sqlite: '@cubejs-backend/sqlite-driver',
-  awselasticsearch: '@cubejs-backend/elasticsearch-driver',
-  elasticsearch: '@cubejs-backend/elasticsearch-driver',
-};
+const DriverDependencies = require('./DriverDependencies');
+const optionsValidate = require('./optionsValidate');
 
 const checkEnvForPlaceholders = () => {
   const placeholderSubstr = '<YOUR_DB_';
@@ -169,6 +152,7 @@ const prodLogger = (level) => (msg, params) => {
 
 class CubejsServerCore {
   constructor(options) {
+    optionsValidate(options);
     options = options || {};
     options = {
       driverFactory: () => typeof options.dbType === 'string' && CubejsServerCore.createDriver(options.dbType),
@@ -189,6 +173,10 @@ class CubejsServerCore {
       dbType: process.env.CUBEJS_DB_TYPE,
       devServer: process.env.NODE_ENV !== 'production',
       telemetry: process.env.CUBEJS_TELEMETRY !== 'false',
+      scheduledRefreshTimer: process.env.CUBEJS_SCHEDULED_REFRESH_TIMER,
+      scheduledRefreshTimeZones: process.env.CUBEJS_SCHEDULED_REFRESH_TIMEZONES &&
+        process.env.CUBEJS_SCHEDULED_REFRESH_TIMEZONES.split(',').map(t => t.trim()),
+      scheduledRefreshContexts: async () => [null],
       ...options
     };
     if (
@@ -237,22 +225,29 @@ class CubejsServerCore {
       setInterval(() => this.compilerCache.prune(), options.maxCompilerCacheKeepAlive);
     }
 
-    this.scheduledRefreshTimer = options.scheduledRefreshTimer || process.env.CUBEJS_SCHEDULED_REFRESH_TIMER;
-    this.scheduledRefreshTimeZones = options.scheduledRefreshTimeZones ||
-      process.env.CUBEJS_SCHEDULED_REFRESH_TIMEZONES &&
-      process.env.CUBEJS_SCHEDULED_REFRESH_TIMEZONES.split(',').map(t => t.trim());
+    this.scheduledRefreshTimer = options.scheduledRefreshTimer;
+    this.scheduledRefreshTimeZones = options.scheduledRefreshTimeZones;
+    this.scheduledRefreshContexts = options.scheduledRefreshContexts;
 
     if (this.scheduledRefreshTimer) {
       setInterval(
         async () => {
-          if (this.scheduledRefreshTimeZones) {
-            // eslint-disable-next-line no-restricted-syntax
-            for (const timezone of this.scheduledRefreshTimeZones) {
-              await this.runScheduledRefresh(null, { timezone });
-            }
-          } else {
-            await this.runScheduledRefresh();
+          const contexts = await this.scheduledRefreshContexts();
+          if (contexts.length < 1) {
+            this.logger('Refresh Scheduler Error', {
+              error: 'At least one context should be returned by scheduledRefreshContexts'
+            });
           }
+          await Promise.all(contexts.map(async context => {
+            if (this.scheduledRefreshTimeZones) {
+              // eslint-disable-next-line no-restricted-syntax
+              for (const timezone of this.scheduledRefreshTimeZones) {
+                await this.runScheduledRefresh(context, { timezone });
+              }
+            } else {
+              await this.runScheduledRefresh(context);
+            }
+          }));
         },
         typeof this.scheduledRefreshTimer === 'number' ||
         typeof this.scheduledRefreshTimer === 'string' && this.scheduledRefreshTimer.match(/^\d+$/) ?
@@ -439,7 +434,8 @@ class CubejsServerCore {
           externalDialectClass: this.externalDialectFactory && this.externalDialectFactory(context),
           schemaVersion: currentSchemaVersion,
           preAggregationsSchema: this.preAggregationsSchema(context),
-          context
+          context,
+          allowJsDuplicatePropsInSchema: this.options.allowJsDuplicatePropsInSchema
         }
       );
       this.compilerCache.set(appId, compilerApi);
@@ -504,6 +500,7 @@ class CubejsServerCore {
       compileContext: options.context,
       dialectClass: options.dialectClass,
       externalDialectClass: options.externalDialectClass,
+      allowJsDuplicatePropsInSchema: options.allowJsDuplicatePropsInSchema
     });
   }
 

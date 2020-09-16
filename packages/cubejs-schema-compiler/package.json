@@ -1,8 +1,8 @@
 {
   "name": "@cubejs-backend/schema-compiler",
   "description": "Cube.js schema compiler",
-  "author": "Statsbot, Inc.",
-  "version": "0.19.57",
+  "author": "Cube Dev, Inc.",
+  "version": "0.20.7",
   "repository": {
     "type": "git",
     "url": "https://github.com/cube-js/cube.js.git",
@@ -14,7 +14,7 @@
   "scripts": {
     "test": "nyc --reporter=lcov mocha -i -g MSSql",
     "test-mssql": "nyc --reporter=lcov mocha -g MSSql",
-    "lint": "eslint adapter/*.js compiler/*.js extensions/*.js scaffolding/*.js parser/SqlParser.js"
+    "lint": "eslint adapter/*.js compiler/*.js extensions/*.js scaffolding/*.js parser/SqlParser.js test/*.js"
   },
   "dependencies": {
     "@babel/generator": "^7.4.0",
@@ -25,6 +25,7 @@
     "@babel/types": "^7.4.0",
     "@hapi/joi": "^15.1.1",
     "antlr4": "^4.8.0",
+    "cron-parser": "^2.16.3",
     "humps": "^2.0.1",
     "inflection": "^1.12.0",
     "lru-cache": "^5.1.1",

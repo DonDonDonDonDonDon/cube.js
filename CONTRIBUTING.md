@@ -47,7 +47,7 @@ The rest will be done by `BaseDriver` class.
 6. If db requires connection pooling prefer use `generic-pool` implementation with settings similar to other db packages.
 7. Make sure your driver has `release()` method in case DB expects graceful shutdowns for connections.
 8. Please use yarn to add any dependencies and run `$ yarn` within the package before committing to ensure right `yarn.lock` is in place.
-9. Add this driver dependency to [cubejs-server-core/core/index.js](https://github.com/statsbotco/cube.js/blob/master/packages/cubejs-server-core/core/index.js#L8).
+9. Add this driver dependency to [cubejs-server-core/core/DriverDependencies.js](https://github.com/cube-js/cube.js/blob/master/packages/cubejs-server-core/core/DriverDependencies.js#L1).
 
 ### Implementing JDBC Driver
 
@@ -90,7 +90,7 @@ It's convenient to link `@cubejs-backend/server-core` into your project for manu
 Cube.js uses `yarn` as package manager instead of `npm`.
 In order to link `@cubejs-backend/server-core`:
 
-1. Create new project using `cubejs create` or use existing one.
+1. Create new project using `npx cubejs-cli create` or use existing one.
 2. Install yarn: `npm install -g yarn`.
 3. Link server-core package: `yarn link` inside `packages/cubejs-server-core`.
 4. Link all drivers and dependent packages where you make changes in `packages/cubejs-server-core`.
