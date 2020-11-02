@@ -3,6 +3,316 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.23.4](https://github.com/cube-js/cube.js/compare/v0.23.3...v0.23.4) (2020-11-02)
+
+
+### Bug Fixes
+
+* **cubejs-cli:** Deploy and Windows-style paths ([#1277](https://github.com/cube-js/cube.js/issues/1277)) ([aa02f01](https://github.com/cube-js/cube.js/commit/aa02f0183008d6b49941d53321a68c59b999254d))
+
+
+
+
+
+## [0.23.3](https://github.com/cube-js/cube.js/compare/v0.23.2...v0.23.3) (2020-10-31)
+
+
+### Bug Fixes
+
+* **@cubejs-backend/schema-compiler:** deprecation warning ([#1272](https://github.com/cube-js/cube.js/issues/1272)) ([5515465](https://github.com/cube-js/cube.js/commit/5515465))
+* **ci:** Update a Docker Hub repository description automatically ([4ad0b0d](https://github.com/cube-js/cube.js/commit/4ad0b0d))
+* **cubejs-cli:** @cubejs-backend/server/dist/command/dev-server dependency not found. ([e552ee1](https://github.com/cube-js/cube.js/commit/e552ee1))
+
+
+### Features
+
+* **@cubejs-backend/query-orchestrator:** add support for MSSQL nvarchar ([#1260](https://github.com/cube-js/cube.js/issues/1260)) Thanks to @JoshMentzer! ([a9e9919](https://github.com/cube-js/cube.js/commit/a9e9919))
+* Dynamic Angular template ([#1257](https://github.com/cube-js/cube.js/issues/1257)) ([86ba728](https://github.com/cube-js/cube.js/commit/86ba728))
+
+
+
+
+
+## [0.23.2](https://github.com/cube-js/cube.js/compare/v0.23.1...v0.23.2) (2020-10-28)
+
+
+### Bug Fixes
+
+* Add default ports and fix dashboard creation fails in docker ([#1267](https://github.com/cube-js/cube.js/issues/1267)) ([2929dbb](https://github.com/cube-js/cube.js/commit/2929dbb))
+
+
+
+
+
+## [0.23.1](https://github.com/cube-js/cube.js/compare/v0.23.0...v0.23.1) (2020-10-28)
+
+
+### Bug Fixes
+
+* Unavailable. @cubejs-backend/server inside current directory requires cubejs-cli (^0.22) ([#1265](https://github.com/cube-js/cube.js/issues/1265)) ([340746e](https://github.com/cube-js/cube.js/commit/340746e))
+
+
+
+
+
+# [0.23.0](https://github.com/cube-js/cube.js/compare/v0.22.4...v0.23.0) (2020-10-28)
+
+
+### Bug Fixes
+
+* TypeError: CubejsServer.driverDependencies is not a function ([#1264](https://github.com/cube-js/cube.js/issues/1264)) ([9b1260a](https://github.com/cube-js/cube.js/commit/9b1260a))
+
+
+
+
+
+## [0.22.4](https://github.com/cube-js/cube.js/compare/v0.22.3...v0.22.4) (2020-10-28)
+
+
+### Bug Fixes
+
+* **Web Analytics Guide:** add links ([065a637](https://github.com/cube-js/cube.js/commit/065a637))
+
+
+### Features
+
+* **@cubejs-backend/server:** Implement dev-server & server command ([#1227](https://github.com/cube-js/cube.js/issues/1227)) ([84c1eeb](https://github.com/cube-js/cube.js/commit/84c1eeb))
+* Introduce Docker template ([#1243](https://github.com/cube-js/cube.js/issues/1243)) ([e0430bf](https://github.com/cube-js/cube.js/commit/e0430bf))
+
+
+
+
+
+## [0.22.3](https://github.com/cube-js/cube.js/compare/v0.22.2...v0.22.3) (2020-10-26)
+
+
+### Bug Fixes
+
+* **@cubejs-backend/schema-compiler:** Dialect for 'undefined' is not found, fix [#1247](https://github.com/cube-js/cube.js/issues/1247) ([1069b47](https://github.com/cube-js/cube.js/commit/1069b47ff4f0a9d2e398ba194fe3eef5ad39f0d2))
+
+
+
+
+
+## [0.22.2](https://github.com/cube-js/cube.js/compare/v0.22.1...v0.22.2) (2020-10-26)
+
+
+### Bug Fixes
+
+* Dialect class isn't looked up for external drivers ([b793f4a](https://github.com/cube-js/cube.js/commit/b793f4a))
+* **@cubejs-client/core:** duplicate names in ResultSet.seriesNames() ([#1187](https://github.com/cube-js/cube.js/issues/1187)). Thanks to [@aviranmoz](https://github.com/aviranmoz)! ([8d9eb68](https://github.com/cube-js/cube.js/commit/8d9eb68))
+
+
+### Features
+
+* Short Cube Cloud auth token ([#1222](https://github.com/cube-js/cube.js/issues/1222)) ([7885089](https://github.com/cube-js/cube.js/commit/7885089))
+
+
+
+
+
+## [0.22.1](https://github.com/cube-js/cube.js/compare/v0.22.0...v0.22.1) (2020-10-21)
+
+
+### Bug Fixes
+
+* **@cubejs-playground:** avoid unnecessary load calls, dryRun ([#1210](https://github.com/cube-js/cube.js/issues/1210)) ([aaf4911](https://github.com/cube-js/cube.js/commit/aaf4911))
+* **cube-cli:** Missed deploy command ([4192e77](https://github.com/cube-js/cube.js/commit/4192e77))
+
+
+### Features
+
+* **cubejs-cli:** Check js files by tsc ([3b9f4a2](https://github.com/cube-js/cube.js/commit/3b9f4a2))
+* **cubejs-cli:** Move deploy command to TS ([b38cb4a](https://github.com/cube-js/cube.js/commit/b38cb4a))
+
+
+
+
+
+# [0.22.0](https://github.com/cube-js/cube.js/compare/v0.21.2...v0.22.0) (2020-10-20)
+
+
+### Bug Fixes
+
+* umd build default export ([#1219](https://github.com/cube-js/cube.js/issues/1219)) ([cc434eb](https://github.com/cube-js/cube.js/commit/cc434eb))
+* **@cubejs-client/core:** Add parseDateMeasures field to CubeJSApiOptions (typings) ([e1a1ada](https://github.com/cube-js/cube.js/commit/e1a1ada))
+* **@cubejs-client/vue:** Allow array props on query renderer to allow data blending usage ([#1213](https://github.com/cube-js/cube.js/issues/1213)). Thanks to [@richipargo](https://github.com/richipargo) ([2203a54](https://github.com/cube-js/cube.js/commit/2203a54))
+* **ci:** Specify DOCKER_IMAGE ([59bf390](https://github.com/cube-js/cube.js/commit/59bf390))
+* **docs-gen:** change signature generation ([e4703ad](https://github.com/cube-js/cube.js/commit/e4703ad))
+
+
+### Features
+
+* Cube Store driver ([85ca240](https://github.com/cube-js/cube.js/commit/85ca240))
+* **@cubejs-backend/server:** Introduce external commands for CLI (demo) ([fed9285](https://github.com/cube-js/cube.js/commit/fed9285))
+* **cubejs-cli:** adds USER_CONTEXT parameter to cli ([#1215](https://github.com/cube-js/cube.js/issues/1215)) Thanks to @TheSPD! ([66452b9](https://github.com/cube-js/cube.js/commit/66452b9))
+* **cubejs-cli:** Improve external commands support ([c13a729](https://github.com/cube-js/cube.js/commit/c13a729))
+* **cubejs-cli:** Move helpers to TypeScript ([06b5f01](https://github.com/cube-js/cube.js/commit/06b5f01))
+* **cubejs-cli:** Run dev-server/server commands from @cubejs-backend/core ([a35244c](https://github.com/cube-js/cube.js/commit/a35244c))
+* **cubejs-cli:** Run dev-server/server commands from @cubejs-backend/core ([a4d72fe](https://github.com/cube-js/cube.js/commit/a4d72fe))
+* **cubejs-cli:** Use TypeScript ([009ff7a](https://github.com/cube-js/cube.js/commit/009ff7a))
+
+
+
+
+
+## [0.21.2](https://github.com/cube-js/cube.js/compare/v0.21.1...v0.21.2) (2020-10-15)
+
+
+### Bug Fixes
+
+* **@cubejs-client/playground:** fix setting popovers ([#1209](https://github.com/cube-js/cube.js/issues/1209)) ([644bb9f](https://github.com/cube-js/cube.js/commit/644bb9f))
+
+
+
+
+
+## [0.21.1](https://github.com/cube-js/cube.js/compare/v0.21.0...v0.21.1) (2020-10-15)
+
+
+### Bug Fixes
+
+* **@cubejs-client/react:** resultSet ts in for QueryBuilderRenderProps ([#1193](https://github.com/cube-js/cube.js/issues/1193)) ([7e15cf0](https://github.com/cube-js/cube.js/commit/7e15cf0))
+
+
+### Features
+
+* Introduce Official Docker Image ([#1201](https://github.com/cube-js/cube.js/issues/1201)) ([0647d1f](https://github.com/cube-js/cube.js/commit/0647d1f))
+
+
+
+
+
+# [0.21.0](https://github.com/cube-js/cube.js/compare/v0.20.15...v0.21.0) (2020-10-09)
+
+**Note:** Version bump only for package cubejs
+
+
+
+
+
+## [0.20.15](https://github.com/cube-js/cube.js/compare/v0.20.14...v0.20.15) (2020-10-09)
+
+**Note:** Version bump only for package cubejs
+
+
+
+
+
+## [0.20.14](https://github.com/cube-js/cube.js/compare/v0.20.13...v0.20.14) (2020-10-09)
+
+
+### Bug Fixes
+
+* Filter values can't be changed in Playground -- revert back defaultHeuristic implementation ([30ee112](https://github.com/cube-js/cube.js/commit/30ee112))
+
+
+
+
+
+## [0.20.13](https://github.com/cube-js/cube.js/compare/v0.20.12...v0.20.13) (2020-10-07)
+
+
+### Bug Fixes
+
+* **@cubejs-backend/mongobi-driver:** TypeError: v.toLowerCase is not a function ([16a15cb](https://github.com/cube-js/cube.js/commit/16a15cb))
+* **@cubejs-schema-compilter:** MSSQL rollingWindow with granularity ([#1169](https://github.com/cube-js/cube.js/issues/1169)) Thanks to @JoshMentzer! ([16e6a9e](https://github.com/cube-js/cube.js/commit/16e6a9e))
+
+
+
+
+
+## [0.20.12](https://github.com/cube-js/cube.js/compare/v0.20.11...v0.20.12) (2020-10-02)
+
+
+### Bug Fixes
+
+* respect npm proxy settings ([#1137](https://github.com/cube-js/cube.js/issues/1137)) ([c43adac](https://github.com/cube-js/cube.js/commit/c43adac))
+* **@cubejs-client/playground:** prepublishOnly for exports ([#1171](https://github.com/cube-js/cube.js/issues/1171)) ([5b6b4dc](https://github.com/cube-js/cube.js/commit/5b6b4dc))
+
+
+### Features
+
+* angular query builder ([#1073](https://github.com/cube-js/cube.js/issues/1073)) ([ea088b3](https://github.com/cube-js/cube.js/commit/ea088b3))
+* **@cubejs-client/playground:** Export playground components ([#1170](https://github.com/cube-js/cube.js/issues/1170)) ([fb22331](https://github.com/cube-js/cube.js/commit/fb22331))
+
+
+
+
+
+## [0.20.11](https://github.com/cube-js/cube.js/compare/v0.20.10...v0.20.11) (2020-09-28)
+
+
+### Bug Fixes
+
+* **@cubejs-backend/prestodb-driver:** Wrong OFFSET/LIMIT order ([#1135](https://github.com/cube-js/cube.js/issues/1135)) ([3b94b2c](https://github.com/cube-js/cube.js/commit/3b94b2c)), closes [#988](https://github.com/cube-js/cube.js/issues/988) [#988](https://github.com/cube-js/cube.js/issues/988) [#988](https://github.com/cube-js/cube.js/issues/988)
+* **example:** Material UI Dashboard link ([f4c4170](https://github.com/cube-js/cube.js/commit/f4c4170))
+* propagate drill down parent filters ([#1143](https://github.com/cube-js/cube.js/issues/1143)) ([314985e](https://github.com/cube-js/cube.js/commit/314985e))
+
+
+### Features
+
+* Introduce Druid driver ([#1099](https://github.com/cube-js/cube.js/issues/1099)) ([2bfe20f](https://github.com/cube-js/cube.js/commit/2bfe20f))
+
+
+
+
+
+## [0.20.10](https://github.com/cube-js/cube.js/compare/v0.20.9...v0.20.10) (2020-09-23)
+
+
+### Bug Fixes
+
+* **@cubejs-backend/server-core:** Allow initApp as server-core option ([#1115](https://github.com/cube-js/cube.js/issues/1115)) ([a9d06fd](https://github.com/cube-js/cube.js/commit/a9d06fd))
+* **@cubejs-backend/server-core:** Allow processSubscriptionsInterval as an option ([#1122](https://github.com/cube-js/cube.js/issues/1122)) ([cf21d70](https://github.com/cube-js/cube.js/commit/cf21d70))
+* drilling into any measure other than the first ([#1131](https://github.com/cube-js/cube.js/issues/1131)) ([e741a20](https://github.com/cube-js/cube.js/commit/e741a20))
+* rollupOnlyMode option validation ([#1127](https://github.com/cube-js/cube.js/issues/1127)) ([89ee308](https://github.com/cube-js/cube.js/commit/89ee308))
+* **@cubejs-backend/server-core:** Support apiSecret as option ([#1130](https://github.com/cube-js/cube.js/issues/1130)) ([9fbf544](https://github.com/cube-js/cube.js/commit/9fbf544))
+
+
+
+
+
+## [0.20.9](https://github.com/cube-js/cube.js/compare/v0.20.8...v0.20.9) (2020-09-19)
+
+
+### Bug Fixes
+
+* Allow empty complex boolean filter arrays ([#1100](https://github.com/cube-js/cube.js/issues/1100)) ([80d112e](https://github.com/cube-js/cube.js/commit/80d112e))
+* Allow scheduledRefreshContexts in server-core options validation  ([#1105](https://github.com/cube-js/cube.js/issues/1105)) ([7e43276](https://github.com/cube-js/cube.js/commit/7e43276))
+* **@cubejs-backend/server-core:** orchestratorOptions validation breaks serverless deployments ([#1113](https://github.com/cube-js/cube.js/issues/1113)) ([48ca5aa](https://github.com/cube-js/cube.js/commit/48ca5aa))
+
+
+### Features
+
+* **cubejs-cli:** Ask question about database, if user forget to specify it with -d flag ([#1096](https://github.com/cube-js/cube.js/issues/1096)) ([8b5b9d3](https://github.com/cube-js/cube.js/commit/8b5b9d3))
+* `sqlAlias` attribute for `preAggregations` and short format for pre-aggregation table names ([#1068](https://github.com/cube-js/cube.js/issues/1068)) ([98ffad3](https://github.com/cube-js/cube.js/commit/98ffad3)), closes [#86](https://github.com/cube-js/cube.js/issues/86) [#907](https://github.com/cube-js/cube.js/issues/907)
+* Share Node's version for debug purposes ([#1107](https://github.com/cube-js/cube.js/issues/1107)) ([26c0420](https://github.com/cube-js/cube.js/commit/26c0420))
+
+
+
+
+
+## [0.20.8](https://github.com/cube-js/cube.js/compare/v0.20.7...v0.20.8) (2020-09-16)
+
+
+### Bug Fixes
+
+* **@cubejs-backend/athena-driver:** Show views in Playground for Athena ([#1090](https://github.com/cube-js/cube.js/issues/1090)) ([f8ce729](https://github.com/cube-js/cube.js/commit/f8ce729))
+* validated query behavior ([#1085](https://github.com/cube-js/cube.js/issues/1085)) ([e93891b](https://github.com/cube-js/cube.js/commit/e93891b))
+* **@cubejs-backend/elasticsearch-driver:** Respect `ungrouped` flag ([#1098](https://github.com/cube-js/cube.js/issues/1098)) Thanks to [@vignesh-123](https://github.com/vignesh-123)! ([995b8f9](https://github.com/cube-js/cube.js/commit/995b8f9))
+
+
+### Features
+
+* Add server-core options validate ([#1089](https://github.com/cube-js/cube.js/issues/1089)) ([5580018](https://github.com/cube-js/cube.js/commit/5580018))
+* refreshKey every support for CRON format interval ([#1048](https://github.com/cube-js/cube.js/issues/1048)) ([3e55f5c](https://github.com/cube-js/cube.js/commit/3e55f5c))
+* Strict cube schema parsing, show duplicate property name errors ([#1095](https://github.com/cube-js/cube.js/issues/1095)) ([d4ab530](https://github.com/cube-js/cube.js/commit/d4ab530))
+
+
+
+
+
 ## [0.20.7](https://github.com/cube-js/cube.js/compare/v0.20.6...v0.20.7) (2020-09-11)
 
 

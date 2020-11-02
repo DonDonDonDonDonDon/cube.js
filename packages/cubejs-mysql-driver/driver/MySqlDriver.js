@@ -3,6 +3,7 @@ const genericPool = require('generic-pool');
 const { promisify } = require('util');
 const BaseDriver = require('@cubejs-backend/query-orchestrator/driver/BaseDriver');
 const crypto = require('crypto');
+const fs = require('fs');
 
 const GenericTypeToMySql = {
   string: 'varchar(255) CHARACTER SET utf8mb4',
@@ -13,13 +14,45 @@ class MySqlDriver extends BaseDriver {
   constructor(config) {
     super();
     const { pool, ...restConfig } = config || {};
+    let ssl;
+
+    const sslOptions = [
+      { name: 'ca', value: 'CUBEJS_DB_SSL_CA' },
+      { name: 'cert', value: 'CUBEJS_DB_SSL_CERT' },
+      { name: 'key', value: 'CUBEJS_DB_SSL_KEY' },
+      { name: 'ciphers', value: 'CUBEJS_DB_SSL_CIPHERS' },
+      { name: 'passphrase', value: 'CUBEJS_DB_SSL_PASSPHRASE' },
+    ];
+
+    if (
+      process.env.CUBEJS_DB_SSL ||
+      process.env.CUBEJS_DB_SSL_REJECT_UNAUTHORIZED ||
+      sslOptions.find(o => !!process.env[o.value])
+    ) {
+      ssl = sslOptions.reduce(
+        (agg, { name, value }) => ({
+          ...agg,
+          ...(process.env[value] ? { [name]: fs.readFileSync(process.env[value]) } : {}),
+        }),
+        {}
+      );
+
+      if (process.env.CUBEJS_DB_SSL_REJECT_UNAUTHORIZED) {
+        ssl.rejectUnauthorized =
+          process.env.CUBEJS_DB_SSL_REJECT_UNAUTHORIZED.toLowerCase() === 'true';
+      }
+    }
+
     this.config = {
       host: process.env.CUBEJS_DB_HOST,
       database: process.env.CUBEJS_DB_NAME,
       port: process.env.CUBEJS_DB_PORT,
       user: process.env.CUBEJS_DB_USER,
       password: process.env.CUBEJS_DB_PASS,
-      ...restConfig
+      socketPath: process.env.CUBEJS_DB_SOCKET_PATH,
+      timezone: 'Z',
+      ssl,
+      ...restConfig,
     };
     this.pool = genericPool.createPool({
       create: async () => {
@@ -34,6 +67,7 @@ class MySqlDriver extends BaseDriver {
         conn.execute = promisify(conn.query.bind(conn));
 
         await connect();
+
         return conn;
       },
       destroy: (connection) => promisify(connection.end.bind(connection))(),

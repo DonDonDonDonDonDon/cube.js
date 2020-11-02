@@ -6,6 +6,7 @@ const spawn = require('cross-spawn');
 const AppContainer = require('../dev/AppContainer');
 const DependencyTree = require('../dev/DependencyTree');
 const PackageFetcher = require('../dev/PackageFetcher');
+const DevPackageFetcher = require('../dev/DevPackageFetcher');
 
 const repo = {
   owner: 'cube-js',
@@ -23,7 +24,7 @@ class DevServer {
     const jwt = require('jsonwebtoken');
     const cubejsToken = jwt.sign({}, this.cubejsServer.apiSecret, { expiresIn: '1d' });
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`🔓 Authentication checks are disabled in developer mode. Please use NODE_ENV=production to enable it.`);
+      console.log('🔓 Authentication checks are disabled in developer mode. Please use NODE_ENV=production to enable it.');
     } else {
       console.log(`🔒 Your temporary cube.js token: ${cubejsToken}`);
     }
@@ -77,11 +78,11 @@ class DevServer {
     app.post('/playground/generate-schema', catchErrors(async (req, res) => {
       this.cubejsServer.event('Dev Server Generate Schema');
       if (!req.body) {
-        throw new Error(`Your express app config is missing body-parser middleware. Typical config can look like: \`app.use(bodyParser.json({ limit: '50mb' }));\``);
+        throw new Error('Your express app config is missing body-parser middleware. Typical config can look like: `app.use(bodyParser.json({ limit: \'50mb\' }));`');
       }
 
       if (!req.body.tables) {
-        throw new Error(`You have to select at least one table`);
+        throw new Error('You have to select at least one table');
       }
 
       const driver = await this.cubejsServer.getDriver();
@@ -185,7 +186,7 @@ class DevServer {
     app.post('/playground/apply-template-packages', catchErrors(async (req, res) => {
       this.cubejsServer.event('Dev Server Download Template Packages');
       
-      const fetcher = new PackageFetcher(repo);
+      const fetcher = process.env.TEST_TEMPLATES ? new DevPackageFetcher(repo) : new PackageFetcher(repo);
 
       this.cubejsServer.event('Dev Server App File Write');
       const { toApply, templateConfig } = req.body;
@@ -237,6 +238,7 @@ class DevServer {
           this.applyTemplatePackagesPromise = null;
         }
       }, (err) => {
+        console.log('err', err);
         lastApplyTemplatePackagesError = err;
         if (promise === this.applyTemplatePackagesPromise) {
           this.applyTemplatePackagesPromise = null;
@@ -246,7 +248,7 @@ class DevServer {
     }));
     
     app.get('/playground/manifest', catchErrors(async (_, res) => {
-      const fetcher = new PackageFetcher(repo);
+      const fetcher = process.env.TEST_TEMPLATES ? new DevPackageFetcher(repo) : new PackageFetcher(repo);
       res.json(await fetcher.manifestJSON());
     }));
 

@@ -1,6 +1,6 @@
 {
   "name": "@cubejs-client/core",
-  "version": "0.20.6",
+  "version": "0.23.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/cube-js/cube.js.git",
@@ -21,8 +21,10 @@
     "uuid": "^3.4.0"
   },
   "scripts": {
-    "test": "jest",
-    "lint": "eslint src/*.js"
+    "test": "npm run unit",
+    "unit": "jest",
+    "lint": "eslint src/*.js",
+    "lint:fix": "eslint --fix src/*.js"
   },
   "files": [
     "src",

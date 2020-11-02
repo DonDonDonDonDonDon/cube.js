@@ -1,13 +1,14 @@
 const Joi = require('@hapi/joi');
 const DriverDependencies = require('./DriverDependencies');
 
-
 const schemaQueueOptions = Joi.object().keys({
   concurrency: Joi.number().min(1).integer(),
   continueWaitTimeout: Joi.number().min(0).integer(),
   executionTimeout: Joi.number().min(0).integer(),
   orphanedTimeout: Joi.number().min(0).integer(),
-  heartBeatInterval: Joi.number().min(0).integer()
+  heartBeatInterval: Joi.number().min(0).integer(),
+  sendProcessMessageFn: Joi.func(),
+  sendCancelMessageFn: Joi.func(),
 });
 
 const dbTypes = Joi.alternatives().try(
@@ -22,6 +23,10 @@ const schemaOptions = Joi.object().keys({
   basePath: Joi.string(),
   webSocketsBasePath: Joi.string(),
   devServer: Joi.boolean(),
+  apiSecret: Joi.string(),
+  webSockets: Joi.boolean(),
+  processSubscriptionsInterval: Joi.number(),
+  initApp: Joi.func(),
   logger: Joi.func(),
   driverFactory: Joi.func(),
   externalDriverFactory: Joi.func(),
@@ -46,20 +51,25 @@ const schemaOptions = Joi.object().keys({
   updateCompilerCacheKeepAlive: Joi.boolean(),
   telemetry: Joi.boolean(),
   allowUngroupedWithoutPrimaryKey: Joi.boolean(),
-  orchestratorOptions: Joi.object().keys({
-    redisPrefix: Joi.string().allow(''),
-    queryCacheOptions: Joi.object().keys({
-      refreshKeyRenewalThreshold: Joi.number().min(0).integer(),
-      backgroundRenew: Joi.boolean(),
-      queueOptions: schemaQueueOptions
-    }),
-    preAggregationsOptions: {
-      queueOptions: schemaQueueOptions
-    }
-  }),
-  allowJsDuplicatePropsInSchema: Joi.boolean()
+  orchestratorOptions: Joi.alternatives().try(
+    Joi.func(),
+    Joi.object().keys({
+      redisPrefix: Joi.string().allow(''),
+      queryCacheOptions: Joi.object().keys({
+        refreshKeyRenewalThreshold: Joi.number().min(0).integer(),
+        backgroundRenew: Joi.boolean(),
+        queueOptions: schemaQueueOptions,
+        externalQueueOptions: schemaQueueOptions
+      }),
+      preAggregationsOptions: {
+        queueOptions: schemaQueueOptions
+      },
+      rollupOnlyMode: Joi.boolean()
+    })
+  ),
+  allowJsDuplicatePropsInSchema: Joi.boolean(),
+  scheduledRefreshContexts: Joi.func()
 });
-
 
 module.exports = (options) => {
   const { error } = Joi.validate(options, schemaOptions, { abortEarly: false });

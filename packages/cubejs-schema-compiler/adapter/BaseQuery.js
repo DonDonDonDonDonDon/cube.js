@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars,prefer-template */
 const R = require('ramda');
 const cronParser = require('cron-parser');
- 
+
 const moment = require('moment-timezone');
 const inflection = require('inflection');
 
@@ -60,7 +60,7 @@ class BaseQuery {
         allFilters = allFilters.concat(this.extractDimensionsAndMeasures(f.and));
       } else if (f.or) {
         allFilters = allFilters.concat(this.extractDimensionsAndMeasures(f.or));
-      } else if (!f.dimension && !f.member) {
+      } else if (!f.member && !f.dimension) {
         throw new UserError(`member attribute is required for filter ${JSON.stringify(f)}`);
       } else if (this.cubeEvaluator.isMeasure(f.member || f.dimension)) {
         allFilters.push({ measure: f.member || f.dimension });
@@ -102,10 +102,18 @@ class BaseQuery {
             measure: measure[0],
           };
         }
+        if (!dimension.length && !measure.length) {
+          return {
+            values: [],
+            operator,
+            dimension: null,
+            measure: null,
+          };
+        }
         throw new UserError(`You cannot use dimension and measure in same condition: ${JSON.stringify(f)}`);
       }
 
-      if (!f.dimension && !f.member) {
+      if (!f.member && !f.dimension) {
         throw new UserError(`member attribute is required for filter ${JSON.stringify(f)}`);
       }
 
@@ -122,7 +130,7 @@ class BaseQuery {
       });
     });
   }
-  
+
   initFromOptions() {
     this.contextSymbols = Object.assign({ userContext: {} }, this.options.contextSymbols || {});
     this.paramAllocator = this.options.paramAllocator || this.newParamAllocator();
@@ -162,7 +170,7 @@ class BaseQuery {
     // used in drill downs) should go to WHERE instead of HAVING
     this.filters = filters.filter(f => f.dimension || f.operator === 'measure_filter' || f.operator === 'measureFilter').map(this.initFilter.bind(this));
     this.measureFilters = filters.filter(f => f.measure && f.operator !== 'measure_filter' && f.operator !== 'measureFilter').map(this.initFilter.bind(this));
- 
+
     this.timeDimensions = (this.options.timeDimensions || []).map(dimension => {
       if (!dimension.dimension) {
         const join = this.joinGraph.buildJoin(this.collectCubeNames(true));
@@ -354,7 +362,6 @@ class BaseQuery {
     }
     return this.newFilter(filter);
   }
-
 
   newFilter(filter) {
     return new BaseFilter(this, filter);
@@ -1730,7 +1737,8 @@ class BaseQuery {
   }
 
   preAggregationTableName(cube, preAggregationName, skipSchema) {
-    return `${skipSchema ? '' : this.preAggregationSchema() && `${this.preAggregationSchema()}.`}${this.aliasName(`${cube}.${preAggregationName}`, true)}`;
+    const tblName = this.aliasName(`${cube}.${preAggregationName}`, true);
+    return `${skipSchema ? '' : this.preAggregationSchema() && `${this.preAggregationSchema()}.`}${tblName}`;
   }
 
   preAggregationSchema() {
@@ -1831,7 +1839,7 @@ class BaseQuery {
     if (refreshKey.timezone) {
       utcOffset = moment.tz(refreshKey.timezone).utcOffset() * 60;
     }
-    
+
     let start;
     let end;
     let dayOffset;
@@ -1850,7 +1858,7 @@ class BaseQuery {
       throw new UserError(`Invalid cron string '${every}' in refreshKey (${err})`);
     }
     const delta = (end - start) / 1000;
-     
+
     if (
       !/^(\*|\d+)? ?(\*|\d+) (\*|\d+) \* \* (\*|\d+)$/g.test(every.replace(/ +/g, ' ').replace(/^ | $/g, ''))
     ) {

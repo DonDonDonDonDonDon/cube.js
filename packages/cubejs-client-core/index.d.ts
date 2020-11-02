@@ -49,6 +49,7 @@ declare module '@cubejs-client/core' {
     headers?: Record<string, string>;
     pollInterval?: number;
     credentials?: 'omit' | 'same-origin' | 'include';
+    parseDateMeasures?: boolean;
   };
 
   export type LoadMethodOptions = {
@@ -74,6 +75,9 @@ declare module '@cubejs-client/core' {
 
   export type QueryOrder = 'asc' | 'desc';
 
+  export type TQueryOrderObject = { [key: string]: QueryOrder };
+  export type TQueryOrderArray = Array<[string, QueryOrder]>;
+
   export type Annotation = {
     title: string;
     shortTitle: string;
@@ -86,20 +90,20 @@ declare module '@cubejs-client/core' {
     measures: Record<string, Annotation>;
     timeDimensions: Record<string, Annotation>;
   };
-  
+
   type PivotQuery = Query & {
     queryType: QueryType;
-  }
-  
+  };
+
   type QueryType = 'regularQuery' | 'compareDateRangeQuery' | 'blendingQuery';
-  
+
   type LoadResponseResult<T> = {
     annotation: QueryAnnotations;
     lastRefreshTime: string;
     query: Query;
     data: T[];
-  }
-  
+  };
+
   export type LoadResponse<T> = {
     queryType: QueryType;
     results: LoadResponseResult<T>[];
@@ -249,7 +253,7 @@ declare module '@cubejs-client/core' {
      * Can be used to stash the `ResultSet` in a storage and restored later with [deserialize](#result-set-deserialize)
      */
     serialize(): Object;
-    
+
     /**
      * Can be used when you need access to the methods that can't be used with some query types (eg `compareDateRangeQuery` or `blendingQuery`)
      * ```js
@@ -303,6 +307,24 @@ declare module '@cubejs-client/core' {
      *     //...
      *   ]
      * }
+     * ```
+     *
+     * In case when you want to add `order` or `limit` to the query, you can simply spread it
+     *
+     * ```js
+     * // An example for React
+     * const drillDownResponse = useCubeQuery(
+     *    {
+     *      ...drillDownQuery,
+     *      limit: 30,
+     *      order: {
+     *        'Orders.ts': 'desc'
+     *      }
+     *    },
+     *    {
+     *      skip: !drillDownQuery
+     *    }
+     *  );
      * ```
      * @returns Drill down query
      */
@@ -569,12 +591,16 @@ declare module '@cubejs-client/core' {
     member?: string;
     operator: BinaryOperator;
     values: string[];
+    and?: BinaryFilter[];
+    or?: BinaryFilter[];
   };
   type UnaryFilter = {
     dimension?: string;
     member?: string;
     operator: UnaryOperator;
     values?: never;
+    and?: UnaryFilter[];
+    or?: UnaryFilter[];
   };
   type UnaryOperator = 'set' | 'notSet';
   type BinaryOperator =
@@ -590,8 +616,6 @@ declare module '@cubejs-client/core' {
     | 'notInDateRange'
     | 'beforeDate'
     | 'afterDate';
-
-
 
   export type TimeDimensionGranularity = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';
 
@@ -609,9 +633,7 @@ declare module '@cubejs-client/core' {
     segments?: string[];
     limit?: number;
     offset?: number;
-    order?: {
-      [key: string]: QueryOrder;
-    };
+    order?: TQueryOrderObject | TQueryOrderArray;
     timezone?: string;
     renewQuery?: boolean;
     ungrouped?: boolean;
@@ -674,20 +696,22 @@ declare module '@cubejs-client/core' {
     suggestFilterValues: boolean;
   };
 
-  type TCubeSegment = Pick<TCubeMember, "name" | 'shortTitle' | "title">
+  type TCubeSegment = Pick<TCubeMember, 'name' | 'shortTitle' | 'title'>;
 
-  type TCubeMemberByType<T> =
-    T extends "measures" ? TCubeMeasure :
-    T extends "dimensions" ? TCubeDimension :
-    T extends "segments" ? TCubeSegment :
-    never
-  
+  type TCubeMemberByType<T> = T extends 'measures'
+    ? TCubeMeasure
+    : T extends 'dimensions'
+    ? TCubeDimension
+    : T extends 'segments'
+    ? TCubeSegment
+    : never;
+
   type TDryRunResponse = {
     queryType: QueryType;
     normalizedQueries: Query[];
     pivotQuery: PivotQuery;
     queryOrder: Array<{ [k: string]: QueryOrder }>;
-  }
+  };
 
   /**
    * Contains information about available cubes and it's members.
@@ -717,9 +741,12 @@ declare module '@cubejs-client/core' {
      * @param memberName - Fully qualified member name in a form `Cube.memberName`
      * @return An object containing meta information about member
      */
-    resolveMember<T extends MemberType>(memberName: string, memberType: T): { title: string, error: string } | TCubeMemberByType<T>;
+    resolveMember<T extends MemberType>(
+      memberName: string,
+      memberType: T | T[]
+    ): { title: string; error: string } | TCubeMemberByType<T>;
     defaultTimeDimensionNameFor(memberName: string): string;
-    filterOperatorsForMember(memberName: string, memberType: MemberType): any;
+    filterOperatorsForMember(memberName: string, memberType: MemberType | MemberType[]): any;
   }
 
   /**
@@ -755,6 +782,32 @@ declare module '@cubejs-client/core' {
      */
     load(query: Query | Query[], options?: LoadMethodOptions, callback?: LoadMethodCallback<ResultSet>): void;
 
+    /**
+     * Allows you to fetch data and receive updates over time. See [Real-Time Data Fetch](real-time-data-fetch)
+     *
+     * ```js
+     * cubejsApi.subscribe(
+     *   {
+     *     measures: ['Logs.count'],
+     *     timeDimensions: [
+     *       {
+     *         dimension: 'Logs.time',
+     *         granularity: 'hour',
+     *         dateRange: 'last 1440 minutes',
+     *       },
+     *     ],
+     *   },
+     *   options,
+     *   (error, resultSet) => {
+     *     if (!error) {
+     *       // handle the update
+     *     }
+     *   }
+     * );
+     * ```
+     */
+    subscribe(query: Query | Query[], options: LoadMethodOptions | null, callback: LoadMethodCallback<ResultSet>): void;
+
     sql(query: Query | Query[], options?: LoadMethodOptions): Promise<SqlQuery>;
     /**
      * Get generated SQL string for the given `query`.
@@ -767,7 +820,7 @@ declare module '@cubejs-client/core' {
      * Get meta description of cubes available for querying.
      */
     meta(options?: LoadMethodOptions, callback?: LoadMethodCallback<Meta>): void;
-    
+
     dryRun(query: Query | Query[], options?: LoadMethodOptions): Promise<TDryRunResponse>;
     /**
      * Get query related meta without query execution
@@ -801,4 +854,33 @@ declare module '@cubejs-client/core' {
    */
   export default function cubejs(apiToken: string | (() => Promise<string>), options: CubeJSApiOptions): CubejsApi;
   export default function cubejs(options: CubeJSApiOptions): CubejsApi;
+
+  /**
+   * @hidden
+   */
+  export type TSourceAxis = 'x' | 'y';
+
+  export type TDefaultHeuristicsOptions = {
+    meta: Meta;
+    sessionGranularity?: TimeDimensionGranularity;
+  };
+
+  export function defaultHeuristics(newQuery: Query, oldQuery: Query, options: TDefaultHeuristicsOptions): any;
+  /**
+   * @hidden
+   */
+  export function isQueryPresent(query: Query | Query[]): boolean;
+  export function movePivotItem(
+    pivotConfig: PivotConfig,
+    sourceIndex: number,
+    destinationIndex: number,
+    sourceAxis: TSourceAxis,
+    destinationAxis: TSourceAxis
+  ): PivotConfig;
+  /**
+   * @hidden
+   */
+  export function moveItemInArray<T = any>(list: T[], sourceIndex: number, destinationIndex: number): T[];
+  
+  export function defaultOrder(query: Query): { [key: string]: QueryOrder }
 }

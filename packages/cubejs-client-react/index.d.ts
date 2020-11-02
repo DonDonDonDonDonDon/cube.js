@@ -54,10 +54,10 @@ declare module '@cubejs-client/react' {
    * @order 10
    */
   export const CubeProvider: React.FC<CubeProviderProps>;
-  
+
   type CubeContextProps = {
     cubejsApi: CubejsApi;
-  }
+  };
 
   /**
    * In case when you need direct access to `cubejsApi` you can use `CubeContext` anywhere in your app
@@ -179,6 +179,10 @@ declare module '@cubejs-client/react' {
   };
 
   type QueryBuilderRenderProps = {
+    // Todo: should fix DRY, duplicate props from QueryRendererRenderProps, see https://github.com/cube-js/cube.js/issues/1192
+    resultSet?: ResultSet | null;
+    error?: Error | null;
+    loadingState?: TLoadingState;
     /**
      * Indicates whether the query is ready to be displayed or not
      */
@@ -328,9 +332,12 @@ declare module '@cubejs-client/react' {
      */
     skip?: boolean;
     /**
-     * When `true` the resultSet will be reset to `null` first
+     * Use continuous fetch behavior. See [Real-Time Data Fetch](real-time-data-fetch)
      */
     subscribe?: boolean;
+    /**
+     * When `true` the resultSet will be reset to `null` first
+     */
     resetResultSetOnChange?: boolean;
   };
 

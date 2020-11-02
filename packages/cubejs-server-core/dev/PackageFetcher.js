@@ -1,18 +1,24 @@
 const fs = require('fs-extra');
-const fetch = require('node-fetch').default;
 const decompress = require('decompress');
 const decompressTargz = require('decompress-targz');
 const path = require('path');
 
-const { executeCommand } = require('./utils');
+const { executeCommand, proxyFetch } = require('./utils');
 
 class PackageFetcher {
   constructor(repo) {
     this.repo = repo;
     this.tmpFolderPath = path.resolve('.', 'node_modules', '.tmp');
 
+    this.init();
+
+    this.repoArchivePath = `${this.tmpFolderPath}/master.tar.gz`;
+  }
+  
+  init() {
     try {
-      fs.mkdirSync(this.tmpFolderPath);
+      // Folder node_modules does not exist by default inside docker in /cube/conf without sharing volume for it
+      fs.mkdirpSync(this.tmpFolderPath);
     } catch (err) {
       if (err.code === 'EEXIST') {
         fs.removeSync(this.tmpFolderPath);
@@ -21,12 +27,10 @@ class PackageFetcher {
         throw err;
       }
     }
-
-    this.repoArchivePath = `${this.tmpFolderPath}/master.tar.gz`;
   }
 
   async manifestJSON() {
-    const response = await fetch(
+    const response = await proxyFetch(
       `https://api.github.com/repos/${this.repo.owner}/${this.repo.name}/contents/manifest.json`
     );
 
@@ -37,7 +41,7 @@ class PackageFetcher {
     const url = `https://github.com/${this.repo.owner}/${this.repo.name}/archive/master.tar.gz`;
     const writer = fs.createWriteStream(this.repoArchivePath);
 
-    (await fetch(url)).body.pipe(writer);
+    (await proxyFetch(url)).body.pipe(writer);
 
     return new Promise((resolve, reject) => {
       writer.on('finish', resolve);

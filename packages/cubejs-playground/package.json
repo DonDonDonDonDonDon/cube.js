@@ -1,6 +1,6 @@
 {
   "name": "@cubejs-client/playground",
-  "version": "0.20.6",
+  "version": "0.23.3",
   "repository": {
     "type": "git",
     "url": "https://github.com/cube-js/cube.js.git",
@@ -16,10 +16,10 @@
     "@babel/standalone": "^7.3.4",
     "@babel/traverse": "^7.4.0",
     "@babel/types": "^7.4.0",
-    "@cubejs-client/core": "^0.20.6",
-    "@cubejs-client/react": "^0.20.6",
+    "@cubejs-client/core": "^0.23.0",
+    "@cubejs-client/react": "^0.23.0",
     "antd": "^4.2.0",
-    "bizcharts": "^3.4.3",
+    "bizcharts": "3.5.9",
     "chart.js": "^2.7.3",
     "codesandbox-import-utils": "^2.1.1",
     "component-cookie": "^1.1.4",
@@ -45,14 +45,14 @@
     "react-source-render": "4.0.0-1",
     "recharts": "^1.7.1",
     "sql-formatter": "^2.3.2",
-    "styled-components": "^4.4.1",
+    "styled-components": "5.2.0",
     "uuid": "^3.3.3",
     "whatwg-fetch": "^3.0.0"
   },
   "scripts": {
-    "start": "EXTEND_ESLINT=true PORT=3080 react-app-rewired start",
-    "build": "EXTEND_ESLINT=true react-app-rewired --max-old-space-size=3072 build && rm -Rf ../cubejs-server-core/playground/** && cp -R build/ ../cubejs-server-core/playground/",
-    "eject": "EXTEND_ESLINT=true react-scripts eject",
+    "start": "SKIP_PREFLIGHT_CHECK=true EXTEND_ESLINT=true PORT=3080 react-app-rewired start",
+    "build": "SKIP_PREFLIGHT_CHECK=true EXTEND_ESLINT=true react-app-rewired --max-old-space-size=3072 build && rm -Rf ../cubejs-server-core/playground/** && cp -R build/ ../cubejs-server-core/playground/ && babel src -d dist --copy-files",
+    "eject": "SKIP_PREFLIGHT_CHECK=true EXTEND_ESLINT=true react-scripts eject",
     "lint": "eslint src/*.js src/*.jsx"
   },
   "browserslist": [
@@ -64,12 +64,15 @@
   "files": [
     "src",
     "public",
-    "build"
+    "build",
+    "dist"
   ],
   "homepage": ".",
   "proxy": "http://localhost:4000",
   "license": "MIT",
   "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/plugin-proposal-optional-chaining": "^7.11.0",
     "@types/react": "^16.9.35",
     "@types/react-beautiful-dnd": "^13.0.0",
     "eslint-config-airbnb": "^18.1.0",

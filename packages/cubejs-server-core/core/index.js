@@ -77,14 +77,14 @@ const devLogger = (level) => (type, { error, warning, ...message }) => {
 
   // eslint-disable-next-line default-case
   switch ((level || 'info').toLowerCase()) {
-    case "trace": {
+    case 'trace': {
       if (!error && !warning) {
         logDetails(true);
         break;
       }
     }
     // eslint-disable-next-line no-fallthrough
-    case "info": {
+    case 'info': {
       if (!error && !warning && [
         'Executing SQL',
         'Executing Load Pre Aggregation SQL',
@@ -97,14 +97,14 @@ const devLogger = (level) => (type, { error, warning, ...message }) => {
       }
     }
     // eslint-disable-next-line no-fallthrough
-    case "warn": {
+    case 'warn': {
       if (!error && warning) {
         logWarning();
         break;
       }
     }
     // eslint-disable-next-line no-fallthrough
-    case "error": {
+    case 'error': {
       if (error) {
         logError();
         break;
@@ -119,14 +119,14 @@ const prodLogger = (level) => (msg, params) => {
   const logMessage = () => console.log(JSON.stringify({ message: msg, ...params }));
   // eslint-disable-next-line default-case
   switch ((level || 'warn').toLowerCase()) {
-    case "trace": {
+    case 'trace': {
       if (!error && !warning) {
         logMessage();
         break;
       }
     }
     // eslint-disable-next-line no-fallthrough
-    case "info":
+    case 'info':
       if ([
         'REST API Request',
       ].includes(msg)) {
@@ -134,14 +134,14 @@ const prodLogger = (level) => (msg, params) => {
         break;
       }
     // eslint-disable-next-line no-fallthrough
-    case "warn": {
+    case 'warn': {
       if (!error && warning) {
         logMessage();
         break;
       }
     }
     // eslint-disable-next-line no-fallthrough
-    case "error": {
+    case 'error': {
       if (error) {
         logMessage();
         break;
@@ -168,6 +168,9 @@ class CubejsServerCore {
           password: process.env.CUBEJS_EXT_DB_PASS,
         })
       ),
+      externalDialectFactory: () => typeof options.externalDbType === 'string' &&
+        CubejsServerCore.lookupDriverClass(options.externalDbType).dialectClass &&
+        CubejsServerCore.lookupDriverClass(options.externalDbType).dialectClass(),
       externalDbType: process.env.CUBEJS_EXT_DB_TYPE,
       apiSecret: process.env.CUBEJS_API_SECRET,
       dbType: process.env.CUBEJS_DB_TYPE,
@@ -284,6 +287,8 @@ class CubejsServerCore {
           anonymousId,
           projectFingerprint: this.projectFingerprint,
           coreServerVersion: this.coreServerVersion,
+          imageTag: process.env.CUBEJS_DOCKER_IMAGE_TAG,
+          nodeVersion: process.version,
           ...props
         });
       } catch (e) {
@@ -390,7 +395,7 @@ class CubejsServerCore {
     } else {
       app.get('/', (req, res) => {
         res.status(200)
-          .send(`<html><body>Cube.js server is running in production mode. <a href="https://cube.dev/docs/deployment#production-mode">Learn more about production mode</a>.</body></html>`);
+          .send('<html><body>Cube.js server is running in production mode. <a href="https://cube.dev/docs/deployment#production-mode">Learn more about production mode</a>.</body></html>');
       });
     }
   }
@@ -529,12 +534,25 @@ class CubejsServerCore {
 
   static createDriver(dbType) {
     checkEnvForPlaceholders();
-    return new (CubejsServerCore.lookupDriverClass(dbType))();
+
+    const module = CubejsServerCore.lookupDriverClass(dbType);
+    if (module.default) {
+      // eslint-disable-next-line new-cap
+      return new module.default();
+    }
+
+    // eslint-disable-next-line new-cap
+    return new module();
   }
 
   static lookupDriverClass(dbType) {
     // eslint-disable-next-line global-require,import/no-dynamic-require
-    return require(CubejsServerCore.driverDependencies(dbType || process.env.CUBEJS_DB_TYPE));
+    const module = require(CubejsServerCore.driverDependencies(dbType || process.env.CUBEJS_DB_TYPE));
+    if (module.default) {
+      return module.default;
+    }
+
+    return module;
   }
 
   static driverDependencies(dbType) {

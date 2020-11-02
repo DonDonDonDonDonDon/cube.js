@@ -320,6 +320,20 @@ cube(`OrderFacts`, {
 It'll generate aliases for members such as `ofacts__count`.
 `sqlAlias` affects all member names including pre-aggregation table names.
 
+### rewriteQueries
+
+Set this flag to true if you want Cube.js to rewrite your queries after final SQL has been generated.
+This may be helpful to apply filter pushdown optimizations or reduce unnecessary query nesting.
+For example:
+
+```javascript
+cube(`Tickets`, {
+  rewriteQueries: true,
+  
+  // ...
+});
+```
+
 
 ## Context Variables
 
@@ -376,6 +390,8 @@ for the `['2018-01-01', '2018-12-31']` date range passed for the `OrderFacts.dat
 
 You can also pass a function instead of an SQL expression as a `filter()` argument.
 This way you can add BigQuery sharding filtering for events, which will reduce your billing cost.
+
+> **NOTE:** When you're passing function to the `filter()` function, params are passed as string parameters from driver and it's your responsibility to handle type conversions in this case.
 
 ```javascript
 cube(`Events`, {
@@ -434,7 +450,8 @@ cube(`Orders`, {
 
 ### Unsafe Value
 
-> **NOTE:** Use of this feature entails SQL injection security risk. Use it with caution.
+[[warning | Note]]
+| Use of this feature entails SQL injection security risk. Use it with caution.
 
 You can access values of context variables directly in javascript in order to use it during your SQL generation.
 For example:
@@ -457,7 +474,8 @@ cube(`Orders`, {
 
 In case you need to convert your timestamp to user request timezone in cube or member SQL you can use `SQL_UTILS.convertTz()` method. Note that Cube.js will automatically convert timezones for `timeDimensions` fields in [queries](Query-Format#query-properties). 
 
-> **NOTE:** Dimensions that use `SQL_UTILS.convertTz()` should not be used as `timeDimensions` in queries. Doing so will apply the conversion multiple times and yield wrong results. 
+[[warning | Note]]
+| Dimensions that use `SQL_UTILS.convertTz()` should not be used as `timeDimensions` in queries. Doing so will apply the conversion multiple times and yield wrong results. 
 
 In case the same database field needs to be queried in `dimensions` and `timeDimensions`, create dedicated dimensions in the cube definition for the respective use:
 
@@ -483,7 +501,8 @@ cube(`visitors`, {
 There's global `COMPILE_CONTEXT` that captured as [RequestContext](@cubejs-backend-server-core#request-context) at the time of schema compilation.
 It contains `authInfo` and any other variables provided by [extendContext](@cubejs-backend-server-core#options-reference-extend-context).
 
-> **NOTE:** While `authInfo` defined in `COMPILE_CONTEXT` it doesn't change it's value for different users. It may change however for different tenants.
+[[warning | Note]]
+| While `authInfo` defined in `COMPILE_CONTEXT` it doesn't change it's value for different users. It may change however for different tenants.
 
 ```javascript
 const { authInfo: { deploymentId } } = COMPILE_CONTEXT;

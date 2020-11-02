@@ -48,13 +48,22 @@ describe('index.test', () => {
       .toThrowError(/"compilerCacheSize" must be larger than or equal to 0/);
   });
 
+  test('Should create instance of CubejsServerCore, orchestratorOptions as func', () => {
+    const options = { dbType: 'mysql', orchestratorOptions: () => {} };
+
+    expect(new CubejsServerCore(options))
+      .toBeInstanceOf(CubejsServerCore);
+  });
+
   test('Should create instance of CubejsServerCore, pass all options', () => {
     const queueOptions = {
       concurrency: 3,
       continueWaitTimeout: 5,
       executionTimeout: 600,
       orphanedTimeout: 120,
-      heartBeatInterval: 500
+      heartBeatInterval: 500,
+      sendProcessMessageFn: () => {},
+      sendCancelMessageFn: () => {}
     };
 
     const options = {
@@ -63,7 +72,10 @@ describe('index.test', () => {
       schemaPath: '/test/path/test/',
       basePath: '/basePath',
       webSocketsBasePath: '/webSocketsBasePath',
+      initApp: () => {},
+      processSubscriptionsInterval: 5000,
       devServer: false,
+      apiSecret: 'randomstring',
       logger: () => {},
       driverFactory: () => {},
       externalDriverFactory: () => {},
@@ -87,11 +99,15 @@ describe('index.test', () => {
         queryCacheOptions: {
           refreshKeyRenewalThreshold: 1000,
           backgroundRenew: true,
-          queueOptions
+          queueOptions,
+          externalQueueOptions: {
+            ...queueOptions
+          }
         },
         preAggregationsOptions: {
           queueOptions
-        }
+        },
+        rollupOnlyMode: false
       },
       allowJsDuplicatePropsInSchema: true
     };
